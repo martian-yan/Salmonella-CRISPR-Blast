@@ -125,6 +125,7 @@ def sort_crispr_alleles(ARGS):
 
     crispr_alleles = pd.read_csv(dr_gff, sep='\t', header=None, comment='#', names=['qseqid', 'source', 'feature', 'start', 'end', 'score', 'strand', 'frame', 'attributes'])
     crispr_alleles = crispr_alleles[crispr_alleles['feature'] == 'CRISPR']
+    crispr_sorted = False
 
     strand = "Unclear"
     sort_ascending = True
@@ -141,18 +142,17 @@ def sort_crispr_alleles(ARGS):
 
     # TODO: Possible upgrade - train a ML model to dicide whether it's CRISPR1 or 2
     # Step 1 decide CRISPR1 and 2 through the order if they on the SAME contig
-    CRISPR1 = None
-    CRISPR2 = None
-
-    screen_log = "CRISPR allele sorted according to their position:\n\
-                CRISPR1 is at: {0}\n\
-                CRISPR2 is at: {1}".format(CRISPR1, CRISPR2)
-    write_log(screen_log, log_file)
-
     if (len(crispr_alleles) == 2) and (strand != "Unclear") and all(qseqid == crispr_alleles.loc[0, 'qseqid'] for qseqid in crispr_alleles['qseqid']):
-        CRISPR1 = crispr_alleles.loc[0]
-        CRISPR2 = crispr_alleles.loc[1]
+        crispr_alleles.loc[0, 'feature'] = 'CRISPR1'
+        crispr_alleles.loc[1, 'feature'] = 'CRISPR2'
+        crispr_sorted = True
         
+    
+    screen_log = "CRISPR allele sorted according to their position:\n\
+                CRISPR1 is at: {0}..{1}\n\
+                CRISPR2 is at: {2}..{3}".format(crispr_alleles.loc[0, 'start'], crispr_alleles[0, 'end'],
+                                               crispr_alleles.loc[1, 'start'], crispr_alleles[1, 'end'])
+    write_log(screen_log, log_file)
 
     # Step 2 confirm/make the decision based on BLAST of adjacent genes
 
@@ -160,9 +160,7 @@ def sort_crispr_alleles(ARGS):
     # Step 3 annotate each of CRISPR1 and 2
 
     # Output Fasta, Gff and Spacer Arrays
-    for index, crispr_allele in crispr_alleles.iterrows():
-        
-        continue
+    
 
     # remove tmp dir
     shutil.rmtree(tmpdir)
