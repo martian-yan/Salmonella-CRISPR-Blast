@@ -242,18 +242,21 @@ def annotate_crispr(fasta_file, spacer_db, out_dir, out_name, tmpdir):
     spacer_arrays = []
     for index, crispr_allele in crispr_alleles.iterrows():
         new_spacers_itter = []
-        spacers = blast_out[(blast_out['qstart']>=crispr_allele['start']) & (blast_out['qend']<=crispr_allele['end'])]
+        spacers = blast_out[(blast_out['qseqid']==crispr_allele['qseqid']) & (blast_out['qstart']>=crispr_allele['start']) & (blast_out['qend']<=crispr_allele['end'])]
         spacers = rm_overlaps(spacers)
 
         # Check new spacer var: identity < 100
         for index, row in spacers.iterrows():
             if row['pident'] < 100:
                 row['sseqid'] = row['sseqid'] + '_var'
+                spacers.at[index, 'sseqid'] = row['sseqid']
+                # save new var to output
                 new_spacer_var.append(row)
         
         # Check gaps which could be new spacers
         for i in range(1, len(spacers)):
             if spacers.loc[i, 'qstart'] - spacers.loc[i-1, 'qend'] > MIN_NEW_SPACER_LENGTH:
+                # save new spacers
                 new_spacer = get_new_spacer(fasta_file, spacers.loc[i, 'qseqid'], crispr_allele['strand'], spacers.loc[i-1, 'qend'], spacers.loc[i, 'qstart'])
                 new_spacers_itter.append(new_spacer)
                 new_spacers.append(new_spacer)
@@ -273,6 +276,8 @@ def annotate_crispr(fasta_file, spacer_db, out_dir, out_name, tmpdir):
         # prepare output spacer arrays
         spacer_array = spacers['sseqid'].tolist()
         spacer_array = [x for x in spacer_array if "DR" not in x]
+        if crispr_allele['strand'] == '-':
+            spacer_array.reverse()
         spacer_array = "-".join(spacer_array)
         spacer_arrays.append("{0}\t{1}\n".format(crispr_allele['feature'], spacer_array))
 

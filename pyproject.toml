@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = 'SWGCT'
+dynamic = ["version"]
+description = 'Salmonella Whole Genome CRISPR Typing pipeline'
+dependencies = ['biopython', 'pandas']
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"swgct.db" = ["*"]
+
+[project.scripts]
+swgct = "swgct.swgct:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "swgct.__version__"}
