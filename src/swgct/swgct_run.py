@@ -6,21 +6,22 @@ date: 2022-10-03
 '''
 __author__ = 'Yan Li'
 __email__ = 'yan.li2@outlook.com'
-__version__ = '1.0.0'
-
-from .parsers import get_arguments
-from .get_crispr_alleles import blast_crispr_dr, sort_crispr_alleles, annotate_crispr
-from .misc import random_string
 
 import os
 import shutil
 
-def main():
+from swgct.get_crispr_alleles import blast_crispr_dr, sort_crispr_alleles, annotate_crispr
+from swgct.misc import random_string
 
-    args = get_arguments()
-    # Processing the raw reads
-    # TODO: add mince
-    
+
+def run(args):
+
+        
+    if args.outdir == None:
+        args.outdir = '.'.join(args.input.split('.')[:-1])
+    if args.prefix == None:
+        args.prefix = os.path.basename('.'.join(args.input.split('.')[:-1]))
+
     ## Input
     fasta_file = args.input
     dr_db = args.database_path.rstrip('/') + '/DR_Salmonella'
@@ -35,6 +36,8 @@ def main():
     os.makedirs(tmpdir)
 
     # Run
+    # Processing the raw reads
+    # TODO: add mince
     # if args.algorithm == 'blast'
     blast_crispr_dr(fasta_file, dr_db, out_dir, out_name, tmpdir)
     # if args.algorithm == 'minced'
@@ -47,6 +50,3 @@ def main():
 
     return
 
-
-if __name__ == "__main__":
-    main()

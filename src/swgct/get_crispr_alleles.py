@@ -17,7 +17,7 @@ import numpy as np
 from Bio import SeqIO
 from Bio.Seq import Seq
 
-from .misc import cmd, current_time, write_log
+from swgct.misc import cmd, current_time, write_log
 
 MIN_REPEATS = 2  # define CRISPR allele with at least 2 DR in a row
 MAX_SPACER_LENGTH = 150  # allow to skip one or two DR
@@ -154,22 +154,24 @@ def sort_crispr_alleles(fasta_file, out_dir, out_name, tmpdir):
 
     # TODO: Possible upgrade - train a ML model to dicide whether it's CRISPR1 or 2
     # Step 1 decide CRISPR1 and 2 through the order if they on the SAME contig
-    if (len(crispr_alleles) == 2) and (strand != "Unclear") and all(
-            qseqid == crispr_alleles.loc[0, 'qseqid']
-            for qseqid in crispr_alleles['qseqid']):
+    if (len(crispr_alleles) == 2) and (strand != "Unclear") and \
+        all(qseqid == crispr_alleles.loc[0, 'qseqid'] for qseqid in crispr_alleles['qseqid']):
         crispr_alleles.loc[0, 'feature'] = 'CRISPR1'
         crispr_alleles.loc[0, 'attributes'] = 'CRISPR1'
         crispr_alleles.loc[1, 'feature'] = 'CRISPR2'
         crispr_alleles.loc[1, 'attributes'] = 'CRISPR2'
         CRISPR_SORTED = True
 
-    print(crispr_alleles)
-    screen_log = "CRISPR allele sorted according to their position:\n\
-                CRISPR1 is at: {0}..{1}\n\
-                CRISPR2 is at: {2}..{3}".format(crispr_alleles.loc[0, 'start'],
-                                                crispr_alleles.loc[0, 'end'],
-                                                crispr_alleles.loc[1, 'start'],
-                                                crispr_alleles.loc[1, 'end'])
+        print(crispr_alleles)
+        screen_log = "CRISPR alleles sorted according to their position:\n\
+                    CRISPR1 is at: {0}..{1}\n\
+                    CRISPR2 is at: {2}..{3}".format(crispr_alleles.loc[0, 'start'],
+                                                    crispr_alleles.loc[0, 'end'],
+                                                    crispr_alleles.loc[1, 'start'],
+                                                    crispr_alleles.loc[1, 'end'])
+    else:
+        screen_log = "CRISPR alleles CAN NOT be sorted\n"
+ 
     write_log(screen_log, log_file)
 
     # Step 2 confirm/make the decision based on BLAST of adjacent genes
@@ -231,7 +233,8 @@ def annotate_crispr(fasta_file, spacer_db, out_dir, out_name, tmpdir):
                             'sstart', 'send', 'evalue', 'bitscore', 'slen',
                             'qseq'
                         ])
-
+    # change datatype of qseqid to avoid bug caused by comparing numeric contig names
+    blast_out = blast_out.astype({'qseqid': 'str'})
 
     ## Sort spacers by each CRISPR allele
     crispr_gff = tmp_file+".crispr.gff"
@@ -243,14 +246,14 @@ def annotate_crispr(fasta_file, spacer_db, out_dir, out_name, tmpdir):
     for index, crispr_allele in crispr_alleles.iterrows():
         new_spacers_itter = []
         spacers = blast_out[(blast_out['qseqid']==crispr_allele['qseqid']) & (blast_out['qstart']>=crispr_allele['start']) & (blast_out['qend']<=crispr_allele['end'])]
-        spacers = rm_overlaps(spacers)
+        spacers = rm_overlaps(spacers) 
 
         # Check new spacer var: identity < 100
         for index, row in spacers.iterrows():
             if row['pident'] < 100:
                 row['sseqid'] = row['sseqid'] + '_var'
                 spacers.at[index, 'sseqid'] = row['sseqid']
-                # save new var to output
+                # save new var to olsutput
                 new_spacer_var.append(row)
         
         # Check gaps which could be new spacers
