@@ -21,7 +21,7 @@ def main(summary_file, ct_file):
                 summary.at[index, 'CT'] = row_ct['name']
 
 
-    summary.to_csv(summary_file[:-3]+'named.tsv', sep='\t')
+    summary.to_csv(summary_file[:-3]+'named.tsv', sep='\t', index=False)
     return
 
 if __name__ == '__main__':

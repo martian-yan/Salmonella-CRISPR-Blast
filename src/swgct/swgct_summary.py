@@ -90,10 +90,13 @@ def summary(args):
 
     print("\nCreated CRISPR summary table:")
     print(crispr_summary)
+    crispr_summary.to_csv(work_dir+'/crispr_summary.unsorted.tsv', sep='\t')
 
     unsorted_before = len([x for x in list(crispr_summary['unsorted']) if not pd.isna(x)])
 
     # Put unsorted crispr to CRISPR1 or CRISPR2 if it matches any of the sorted CRISPR array
+    # Potential BUG: If any weird assembly have reversed CRISPR1 and CRISPR2 positions, all the unsorted results cannot be sorted correctly.
+    # TODO: A cross comparing of CRISPR1 and CRISPR2 - see if any CRISPR2 are in CRISPR1 column
     for index, row in crispr_summary.iterrows():
         if (not pd.isna(row['unsorted'])) and (len(row['unsorted']) == 2):
             # If more than 2 CRISPR alleles, they can be fragments, thus cannot be sorted
