@@ -1,7 +1,6 @@
 # Salmonella-CRISPR-Blast
 
-A Python pipeline for fast identification of Salmonella lineages from CRISPR arrays![image](https://github.com/martian-yan/Salmonella-CRISPR-Blast/assets/36746890/542b8583-807b-4174-b39d-a6bd3df8c6ef)
-
+A Python pipeline for fast identification of Salmonella lineages from CRISPR arrays.
 
 ## Dependencies
 
