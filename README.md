@@ -1,4 +1,4 @@
-# Salmonella-WGCT-pipeline
+# Salmonella-CRISPR-Blast
 
 ## Dependencies
 
